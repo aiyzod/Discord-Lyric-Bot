@@ -11,26 +11,29 @@ class lyric:
 
     def __init__(self, keyword) -> None:
         self.keyword = keyword
-        self.find()
+        self.search(self.keyword)
 
-    def find(self):
-        r = get(f'https://www.kkbox.com/api/search/song?q={self.keyword}&terr=tw&lang=tc')
+    def search(self, keyword):
+        r = get(f'https://www.kkbox.com/api/search/song?q={keyword}&terr=tw&lang=tc')
         res = r.json()['data']['result']
 
         if res:
             r = get(res[0]['url'])
-            self.lyric = bs(r.text, 'html.parser').select_one('div.lyrics').get_text()
+            self.lyric = bs(r.text, 'lxml').select_one('div.lyrics').get_text()
 
             if '暫無歌詞' in self.lyric:
                 self.lyric = '暫無歌詞'
             else:
-                self.lyric = ''.join([line if line.strip(' ') in ['\r\n', '\n'] else line.lstrip() for line in StringIO(self.lyric)])
+                self.lyric = ''.join([line 
+                                      if line.strip(' ') in ['\r\n', '\n'] 
+                                      else line.lstrip() 
+                                      for line in StringIO(self.lyric)])
 
-        self.title = bs(r.text, 'html.parser').select_one('div.title h1').get_text()
-        self.img = bs(r.text, 'html.parser').select_one('div.image-container img').get('src')
-        self.artist = bs(r.text, 'html.parser').select_one('div.artist a')
+        self.title = bs(r.text, 'lxml').select_one('div.title h1').get_text()
+        self.img = bs(r.text, 'lxml').select_one('div.image-container img').get('src')
+        self.artist = bs(r.text, 'lxml').select_one('div.artist a')
 
         if self.artist is None:
-            self.artist = bs(r.text, 'html.parser').select_one('div.artist').get_text()
+            self.artist = bs(r.text, 'lxml').select_one('div.artist').get_text()
         else:
             self.artist = self.artist.get('title')
